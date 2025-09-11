@@ -1,0 +1,12 @@
+#ifndef ERROR_H
+#define ERROR_H
+
+enum ErrorCode {
+	CCBasicCore_SUCCESS,
+	CCBasicCore_INDEX_OVERFLOW,
+	CCBasicCore_INDEX_UNDERFLOW,
+	CCBasicCore_MEMORY_ALLOCATION_FAILED,
+	CCBasicCore_MEMORY_REALLOCATION_FAILED
+};
+
+#endif

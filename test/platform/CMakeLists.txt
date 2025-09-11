@@ -1,0 +1,2 @@
+add_executable(test_memory_allocation test_memory_allocation.c)
+target_link_libraries(test_memory_allocation PRIVATE PlatformCore)
