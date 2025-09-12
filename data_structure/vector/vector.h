@@ -1,6 +1,6 @@
 #ifndef CCBASIC_CORE_VECTOR_H
 #define CCBASIC_CORE_VECTOR_H
-
+#include "utils_def.h"
 #include <stddef.h>
 
 struct ResultPack; ///< see utils for includes
@@ -15,6 +15,7 @@ typedef struct CCVector {
 	size_t current_size;
 	size_t element_size;
 	void* buffer_container;
+	CCSpecialDefinedPack* pack;
 } CCVector;
 
 /**
@@ -23,6 +24,8 @@ typedef struct CCVector {
  * @return CCVector* a blank vector
  */
 CCVector* CCBasicCoreVector_CreateVector(size_t element_size); // signed as elem
+
+CCVector* CCBasicCoreVector_CreateDefinedVector(size_t element_size, CCSpecialDefinedPack* pack);
 
 /**
  * @brief free a vector

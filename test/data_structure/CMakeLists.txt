@@ -1,2 +1,5 @@
 add_executable(test_vector test_vector.c)
 target_link_libraries(test_vector PRIVATE DataStructure)
+
+add_executable(test_vector_deep test_vector_deep.c)
+target_link_libraries(test_vector_deep PRIVATE DataStructure)

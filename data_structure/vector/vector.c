@@ -5,6 +5,9 @@
 #include "Error.h"
 #include "memory_allocation/memory_allocation.h"
 #include "memory_allocation/memory_allocation_tools.h"
+
+
+
 static int __shell_resize(CCVector* vector){
     return vector->capacity == vector->current_size || // Overflow
            (vector->current_size > 0 && vector->capacity >= 4 * vector->current_size); // Underflow
@@ -24,8 +27,6 @@ static int __reallocate_memory(CCVector* vector, size_t new_size){
     if(new_size < vector->current_size) {
         vector->current_size = new_size;
     }
-
-    
     return 1;
 }
 
@@ -41,9 +42,23 @@ CCVector* CCBasicCoreVector_CreateVector(size_t element_size){
     vector->current_size = 0;
     vector->element_size = element_size;
     vector->buffer_container = allocate_memory(vector->capacity * element_size);;
-
+    vector->pack = NULL;
     return vector;
 }
+
+
+CCVector* CCBasicCoreVector_CreateDefinedVector(
+    size_t element_size, CCSpecialDefinedPack* pack){
+    CCVector* vector = allocate_one(CCVector);
+    vector->capacity = 1;
+    vector->current_size = 0;
+    vector->element_size = element_size;
+    vector->buffer_container = allocate_memory(vector->capacity * element_size);
+    vector->pack = pack;
+    return vector;
+}
+
+
 
 /**
  * @brief free a vector
@@ -52,13 +67,18 @@ CCVector* CCBasicCoreVector_CreateVector(size_t element_size){
  * @return int if we free success
  */
 int CCBasicCoreVector_FreeVector(CCVector* vector){
-    // free we holdings
+    if(vector->pack && vector->pack->freer) {
+        for(size_t i = 0; i < vector->current_size; i++) {
+            char* elem_addr = get_operating_offset(
+                vector->buffer_container, vector->element_size, i);
+            void* stored;
+            memcpy(&stored, elem_addr, vector->element_size);
+            vector->pack->freer(stored);
+        }
+    }
+
     int result = free_memory(vector->buffer_container);
-    
-    // free itself
     result &= free_memory(vector);
-    
-    // throw these back 
     return result;
 }
 
@@ -71,8 +91,18 @@ int CCBasicCoreVector_FreeVector(CCVector* vector){
  */
 int CCBasicCoreVector_ResizeVector(CCVector* vector, size_t new_size)
 {
-    vector->capacity = new_size;
-    return  __reallocate_memory(vector, new_size);
+    if(new_size < vector->current_size && vector->pack && vector->pack->freer) {
+        for(size_t i = new_size; i < vector->current_size; i++) {
+            char* elem_addr = get_operating_offset(
+                vector->buffer_container, vector->element_size, i);
+            void* stored;
+            memcpy(&stored, elem_addr, vector->element_size);
+            vector->pack->freer(stored);
+        }
+    }
+
+    int ok = __reallocate_memory(vector, new_size);
+    return ok;
 }
 
 /**
@@ -92,9 +122,18 @@ int __CCBasicCoreVector_PushBack(CCVector* vector,
     }                                
     
     // Assigned!
-    int result = __CCBasicCoreVector_Set(vector, vector->current_size, element, element_size);
+    char* dest = get_operating_offset(
+        vector->buffer_container, element_size, vector->current_size);
+
+    if(vector->pack && vector->pack->copier) {
+        void* copied = vector->pack->copier(element);
+        memcpy(dest, &copied, element_size);
+    } else {
+        memcpy(dest, element, element_size);
+    }
+
     vector->current_size++;
-    return result;
+    return 1;
 }
 
 
@@ -105,10 +144,23 @@ int __CCBasicCoreVector_PushBack(CCVector* vector,
  * @return int pop back success?
  */
 int CCBasicCoreVector_PopBack(CCVector* vector){
+    if(vector->current_size == 0) return 0;
+
+    size_t last_index = vector->current_size - 1;
+    char* elem_addr = get_operating_offset(
+        vector->buffer_container, vector->element_size, last_index);
+
+    if(vector->pack && vector->pack->freer) {
+        void* stored;
+        memcpy(&stored, elem_addr, vector->element_size);
+        vector->pack->freer(stored);
+    }
+
+    vector->current_size--;
     if(__shell_resize(vector)){
         __reallocate_memory(vector, vector->capacity / 2);
-    }     
-    vector->current_size--;
+    }
+
     return 1;
 }
 
