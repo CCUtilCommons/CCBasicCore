@@ -5,6 +5,7 @@
 #include "Error.h"
 #include "memory_allocation/memory_allocation.h"
 #include "memory_allocation/memory_allocation_tools.h"
+#include "utils_def.h"
 
 
 
@@ -67,7 +68,7 @@ CCVector* CCBasicCoreVector_CreateDefinedVector(
  * @return int if we free success
  */
 int CCBasicCoreVector_FreeVector(CCVector* vector){
-    if(vector->pack && vector->pack->freer) {
+    if(CCBasicCoreCCSpecialDefinedPack_OwnsSpecialFree(vector->pack)) {
         for(size_t i = 0; i < vector->current_size; i++) {
             char* elem_addr = get_operating_offset(
                 vector->buffer_container, vector->element_size, i);
@@ -91,7 +92,8 @@ int CCBasicCoreVector_FreeVector(CCVector* vector){
  */
 int CCBasicCoreVector_ResizeVector(CCVector* vector, size_t new_size)
 {
-    if(new_size < vector->current_size && vector->pack && vector->pack->freer) {
+    if(new_size < vector->current_size && 
+        CCBasicCoreCCSpecialDefinedPack_OwnsSpecialFree(vector->pack)) {
         for(size_t i = new_size; i < vector->current_size; i++) {
             char* elem_addr = get_operating_offset(
                 vector->buffer_container, vector->element_size, i);
@@ -125,7 +127,7 @@ int __CCBasicCoreVector_PushBack(CCVector* vector,
     char* dest = get_operating_offset(
         vector->buffer_container, element_size, vector->current_size);
 
-    if(vector->pack && vector->pack->copier) {
+    if(CCBasicCoreCCSpecialDefinedPack_OwnsSpecialCopy(vector->pack)) {
         void* copied = vector->pack->copier(element);
         memcpy(dest, &copied, element_size);
     } else {
@@ -150,7 +152,7 @@ int CCBasicCoreVector_PopBack(CCVector* vector){
     char* elem_addr = get_operating_offset(
         vector->buffer_container, vector->element_size, last_index);
 
-    if(vector->pack && vector->pack->freer) {
+    if(CCBasicCoreCCSpecialDefinedPack_OwnsSpecialFree(vector->pack)) {
         void* stored;
         memcpy(&stored, elem_addr, vector->element_size);
         vector->pack->freer(stored);

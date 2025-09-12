@@ -2,10 +2,11 @@
 #define UTILS_DEF_H
 #include "compares.h"
 
-
 typedef int (*SelfDefinedFree)(void* element);
 typedef void* (*SelfDefinedCopy)(const void* elem);
 typedef CompareResult (*SelfDefinedCompare)(const void* a, const void* b);
+
+typedef void (*ContainerIterator)(void*);
 
 int CCCoreBasic_SimpleFreeBuffer(void* element);
 
@@ -37,5 +38,17 @@ typedef struct __SpecialDefinedPack {
 extern CCSpecialDefinedPack CCSpecialDefinedDefaultPack;
 
 CCSpecialDefinedPack* CCBasicCoreCCSpecialDefinedPack_AssignedDefault(CCSpecialDefinedPack* pack);
+
+static inline int CCBasicCoreCCSpecialDefinedPack_OwnsSpecialCopy(CCSpecialDefinedPack* pack) {
+	return pack && pack->copier;
+}
+
+static inline int CCBasicCoreCCSpecialDefinedPack_OwnsSpecialCompare(CCSpecialDefinedPack* pack) {
+	return pack && pack->compared;
+}
+
+static inline int CCBasicCoreCCSpecialDefinedPack_OwnsSpecialFree(CCSpecialDefinedPack* pack) {
+	return pack && pack->freer;
+}
 
 #endif
