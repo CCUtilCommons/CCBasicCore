@@ -1,5 +1,5 @@
-#ifndef VECTOR_H
-#define VECTOR_H
+#ifndef CCBASIC_CORE_VECTOR_H
+#define CCBASIC_CORE_VECTOR_H
 
 #include <stddef.h>
 
