@@ -9,4 +9,21 @@ enum ErrorCode {
 	CCBasicCore_MEMORY_REALLOCATION_FAILED
 };
 
+/**
+ * @brief 	When Wrong Overrides Occurs, you can invoke this for
+ *			Your handlings
+ *
+ * @param who 	who suck the error
+ * @param message the debug message
+ */
+void _FkOffTheWrongOverrider(void* who, const char* message);
+
+/**
+ * @brief When Wrong Types are happens to be here, handler is invoked!
+ *
+ * @param who 	who suck the error
+ * @param message the debug message
+ */
+void _FkOffTheWrongType(void* who, const char* message);
+
 #endif

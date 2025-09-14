@@ -6,3 +6,10 @@ target_link_libraries(test_vector_deep PRIVATE DataStructure)
 
 add_executable(test_list_with_deep test_list_with_deep.c)
 target_link_libraries(test_list_with_deep PRIVATE DataStructure)
+
+add_executable(test_vector_stack test_vector_stack.c)
+target_link_libraries(test_vector_stack PRIVATE DataStructure)
+
+add_executable(test_list_stack test_list_stack.c)
+target_link_libraries(test_list_stack PRIVATE DataStructure)
+

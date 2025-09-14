@@ -30,6 +30,30 @@ Features:
 - High-performance under stress testing with millions of elements.
 - Flexible iteration through CCBasicCore_CCListRunIterate.
 
+### ✅ CCStack (Abstract Stack Interface)
+
+An object-oriented-style abstract stack interface implemented in C (a “base class” + vtable). Lets you switch implementations at runtime between CCVectorStack and CCListStack while exposing a single, stable API (push/pop/top/empty/size/destroy).
+
+Features
+
+- Abstraction & polymorphism: Vtable-based design hides implementation details behind a single CCStack type — callers use the same functions regardless of backing implementation.
+
+- Fixed element size per instance: Each stack is created with a fixed elem_size; a stack instance holds exactly one element type.
+
+- Pluggable element handling: Optional callbacks (like a CCSpecialDefinedPack) support deep-copy, free, and compare semantics for complex element types.
+
+Performance semantics:
+
+- CCVectorStack — contiguous storage, amortized O(1) push, O(1) pop/top, good cache locality.
+
+- CCListStack — doubly-linked list, O(1) push/pop/top, avoids reallocation overhead.
+
+- Robust edge handling: Well-defined behavior for empty and single-element stacks (typically pop/top → NULL).
+
+- Testability & stress-ready: Designed for easy unit tests and stress tests (millions of ops) to validate correctness and memory behavior.
+
+- Thread-safety optional: Implementations are not thread-safe by default; add external locking or instrument the implementations if concurrent access is required.
+
 ---
 
 ## ⚡ Benchmarks
