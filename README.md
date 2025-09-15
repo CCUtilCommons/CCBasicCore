@@ -54,6 +54,55 @@ Performance semantics:
 
 - Thread-safety optional: Implementations are not thread-safe by default; add external locking or instrument the implementations if concurrent access is required.
 
+### ✅ CCQueue
+
+A flexible and efficient queue abstraction implemented in C.
+Supports multiple backends (CCVectorQueue, CCListQueue) with a unified interface.
+
+Features:
+
+- Unified interface: Switch seamlessly between vector-based and list-based implementations.
+
+- Core operations: push (enqueue), pop (dequeue), front, size, and empty checks.
+
+- Safe edge handling: Returns NULL when popping from an empty queue.
+
+- High-performance under stress: Validated with hundreds of thousands of elements.
+
+- Extensible design: New queue implementations can be plugged in without changing client code.
+
+### ✅ CCDeque
+
+A flexible double-ended queue (deque) implementation in C.
+Supports efficient insertion and removal at both ends, with multiple backends (vector-based and list-based).
+
+✨ Features
+
+- Unified interface: Operations are accessed via CCDeque_Interface_t, allowing different internal implementations.
+
+- Double-ended operations:
+push_front, pop_front
+push_back, pop_back
+Front/Back accessors: Retrieve elements at either end in O(1).
+
+- Multiple backends:
+
+Vector-based deque (CCVectorDeque) — contiguous memory, fast random access.
+
+List-based deque (CCListDeque) — doubly-linked structure, stable pointers.
+
+- Custom element handling via CCSpecialDefinedPack:
+
+- Deep copy (copier)
+
+- Resource cleanup (freer)
+
+- Comparison (compare)
+
+- Safe edge handling: Robust behavior for empty or single-element deques.
+
+- Cross-platform C API: Designed for embedded and desktop C projects.
+
 ---
 
 ## ⚡ Benchmarks

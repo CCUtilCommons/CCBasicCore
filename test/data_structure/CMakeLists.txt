@@ -13,3 +13,11 @@ target_link_libraries(test_vector_stack PRIVATE DataStructure)
 add_executable(test_list_stack test_list_stack.c)
 target_link_libraries(test_list_stack PRIVATE DataStructure)
 
+add_executable(test_queue test_queue.c)
+target_link_libraries(test_queue PRIVATE DataStructure)
+
+add_executable(test_deque_list test_deque_list.c)
+target_link_libraries(test_deque_list PRIVATE DataStructure)
+
+add_executable(test_deque_vector test_deque_vector.c)
+target_link_libraries(test_deque_vector PRIVATE DataStructure)
