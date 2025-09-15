@@ -138,6 +138,68 @@ int __CCBasicCoreVector_PushBack(CCVector* vector,
     return 1;
 }
 
+/**
+ * @brief push front a element to a vector
+ * @param vector the operating vector
+ * @param element the element to be pushed
+ * @param element_size the size of the element
+ * @return int push front success?
+ */
+int __CCBasicCoreVector_PushFront(CCVector* vector,
+                                  void* element,
+                                  size_t element_size) {
+    if (element_size != vector->element_size) {
+        return 0;
+    }
+    if (__shell_resize(vector)) {
+        __reallocate_memory(vector, vector->capacity * 2);
+    }
+
+    char* dest = get_operating_offset(
+        vector->buffer_container, element_size, 1);
+    memmove(dest, vector->buffer_container, vector->current_size * element_size);
+
+    if (CCBasicCoreCCSpecialDefinedPack_OwnsSpecialCopy(vector->pack)) {
+        void* copied = vector->pack->copier(element);
+        memcpy(vector->buffer_container, &copied, element_size);
+    } else {
+        memcpy(vector->buffer_container, element, element_size);
+    }
+
+    vector->current_size++;
+    return 1;
+}
+
+
+/**
+ * @brief vector.pop_front
+ *
+ * @param vector the operating vector
+ * @return int pop front success?
+ */
+int CCBasicCoreVector_PopFront(CCVector* vector) {
+    if (vector->current_size == 0) {
+        return 0;
+    }
+
+    char* elem_addr = vector->buffer_container;
+
+    if (CCBasicCoreCCSpecialDefinedPack_OwnsSpecialFree(vector->pack)) {
+        void* stored;
+        memcpy(&stored, elem_addr, vector->element_size);
+        vector->pack->freer(stored);
+    }
+    char* src = get_operating_offset(
+        vector->buffer_container, vector->element_size, 1);
+    memmove(elem_addr, src, (vector->current_size - 1) * vector->element_size);
+
+    vector->current_size--;
+    if (__shell_resize(vector)) {
+        __reallocate_memory(vector, vector->capacity / 2);
+    }
+
+    return 1;
+}
 
 /**
  * @brief vector.pop_back

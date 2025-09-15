@@ -61,6 +61,28 @@ int __CCBasicCoreVector_PushBack(CCVector* vector,
 	__CCBasicCoreVector_PushBack(vector, element, sizeof(*element))
 
 /**
+ * @brief push front a element to a vector
+ * @param vector the operating vector
+ * @param element the element to be pushed
+ * @param element_size the size of the element
+ * @return int push front success?
+ */
+int __CCBasicCoreVector_PushFront(CCVector* vector,
+                                  void* element,
+                                  size_t element_size);
+
+#define CCBasicCoreVector_PushFront(vector, element) \
+	__CCBasicCoreVector_PushFront(vector, element, sizeof(*element))
+
+/**
+ * @brief vector.pop_front
+ *
+ * @param vector the operating vector
+ * @return int pop front success?
+ */
+int CCBasicCoreVector_PopFront(CCVector* vector);
+
+/**
  * @brief vector.pop_back
  *
  * @param vector the operating vector
