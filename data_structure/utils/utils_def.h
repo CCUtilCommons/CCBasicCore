@@ -51,4 +51,30 @@ static inline int CCBasicCoreCCSpecialDefinedPack_OwnsSpecialFree(CCSpecialDefin
 	return pack && pack->freer;
 }
 
+/// ----------------- Common Insertives ---------------
+
+/**
+ * @brief Simple InterLib Int Compare Functions
+ *
+ * @param intA
+ * @param intB
+ * @return CompareResult
+ */
+static inline CompareResult CCCoreBasic_SimpleCompareInts(
+    const void* intA, const void* intB) {
+	if (!intA || !intB)
+		return CCBASICCORE_COMPARERESULT_EQUAL;
+	int a = *(int*)intA;
+	int b = *(int*)intB;
+	if (a == b) {
+		return CCBASICCORE_COMPARERESULT_EQUAL;
+	} else if (a < b) {
+		return CCBASICCORE_COMPARERESULT_SMALLER;
+	} else {
+		return CCBASICCORE_COMPARERESULT_LARGE;
+	}
+}
+
+/// ----------------- Common Insertives End ---------------
+
 #endif

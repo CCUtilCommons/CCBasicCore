@@ -21,3 +21,9 @@ target_link_libraries(test_deque_list PRIVATE DataStructure)
 
 add_executable(test_deque_vector test_deque_vector.c)
 target_link_libraries(test_deque_vector PRIVATE DataStructure)
+
+add_executable(test_map test_map.c)
+target_link_libraries(test_map PRIVATE DataStructure)
+
+add_executable(test_unorder_map test_unorder_map.c)
+target_link_libraries(test_unorder_map PRIVATE DataStructure)
