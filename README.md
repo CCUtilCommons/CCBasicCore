@@ -103,6 +103,66 @@ List-based deque (CCListDeque) — doubly-linked structure, stable pointers.
 
 - Cross-platform C API: Designed for embedded and desktop C projects.
 
+### ✅ CCMap
+A balanced binary search tree (BST / Treap) based associative container in C.
+Supports efficient key–value storage with ordered iteration.
+
+✨ Features
+
+- Unified map interface: Provides insertion, lookup, update, and erase operations via CCMap API.
+
+- Ordered storage: Keys are stored in sorted order, enabling range queries and ordered traversal.
+
+Two backends (controlled by USE_TREAP_ACC macro):
+
+- BST-based map — simple binary search tree (may degrade to O(n)).
+
+- Treap-based map — randomized balanced BST using heap priority, ensures near O(log n).
+
+Key–value management via CCSpecialDefinedPack:
+
+- Deep copy (copier)
+
+- Resource cleanup (freer)
+
+- Key comparison (compare)
+
+Deletion support:
+
+- BST: classic 3-case erase (leaf, single child, two children).
+
+- Treap: priority-based rotations to maintain balance.
+
+Cross-platform C API:
+Designed for embedded systems and desktop C projects, minimal dependencies.
+
+### ✅ CCUnorderedMap
+A hash table–based associative container in C.
+Supports efficient average O(1) key–value access without ordering guarantees.
+
+✨ Features
+
+- Hash table backend: Uses chaining (linked lists) for collision handling.
+
+- Key–value operations: Insert, find, update, and erase in expected O(1).
+
+- Unordered storage: No guarantee of key ordering; optimized for fast lookups.
+
+- Configurable hash and equality:
+    - Custom hash function pointer.
+    - Custom equality comparator.
+
+Flexible memory management via CCSpecialDefinedPack:
+
+- Deep copy (copier)
+
+- Resource cleanup (freer)
+
+- Key comparison (compare)
+
+- Robust resizing: Table automatically expands to maintain load factor for performance.
+
+- Cross-platform C API: Lightweight and portable, suitable for embedded and desktop projects.
 ---
 
 ## ⚡ Benchmarks
