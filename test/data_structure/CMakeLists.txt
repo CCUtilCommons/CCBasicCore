@@ -10,6 +10,8 @@ set(TEST_SOURCES
     test_map.c
     test_unorder_map.c
     test_cstring.c
+    test_set.c
+    test_unordered_set.c
 )
 
 foreach(TEST_SRC IN LISTS TEST_SOURCES)

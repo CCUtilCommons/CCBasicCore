@@ -6,7 +6,7 @@ add_subdirectory(list)
 add_subdirectory(stack)
 add_subdirectory(queue)
 add_subdirectory(deque)
-
+add_subdirectory(set)
 option(USE_TREAP_ACC "Use Treap Implementation for MapNode" ON)
 add_subdirectory(map)
 
@@ -17,7 +17,7 @@ add_subdirectory(string)
 add_library(DataStructure STATIC ${DataStructure_Src})
 target_include_directories(DataStructure PUBLIC 
     vector utils errors list stack queue deque
-    map string)
+    map string set)
 target_include_directories(DataStructure PRIVATE ../platform)
 target_link_libraries(DataStructure PRIVATE PlatformCore)
 target_compile_definitions(DataStructure PRIVATE $<$<BOOL:${USE_TREAP_ACC}>:USE_TREAP_ACC>)

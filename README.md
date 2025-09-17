@@ -199,6 +199,73 @@ A lightweight and efficient C string library with optional small string optimiza
 
 - Cross-Platform C API: Lightweight and portable, suitable for embedded and desktop projects.
 
+
+### ✅ CCSet
+A lightweight and efficient ordered set implemented in C using a binary search tree.
+
+✨ Features
+
+- Ordered Storage: Keys are stored in sorted order based on user-provided comparator.
+
+- Unique Keys: Each key is stored at most once.
+
+- Comprehensive API:
+
+- Create and destroy sets.
+
+- Insert, erase, and query keys.
+
+- Get current size.
+
+Flexible Key Operations:
+
+- User-provided copier, freer, and comparator (CCSpecialDefinedPack).
+
+- Edge Case Handling:
+
+    - Duplicate insertions are ignored.
+
+    - Safe calls with NULL set.
+
+    - Supports extreme integer ranges and custom structs.
+
+- Cross-Platform C API: Portable for embedded and desktop projects.
+
+### ✅ CCUnorderedSet
+A high-performance hash set implemented in C with separate chaining.
+
+✨ Features
+
+- Hash-Based Lookup: Average O(1) insert, erase, and query operations.
+
+- Configurable Load Factor: Supports automatic rehashing to maintain performance.
+
+- Comprehensive API:
+
+    - Create and destroy hash sets.
+
+    - Insert, erase, and query keys.
+
+    - Get current size.
+
+- Flexible Key Operations:
+
+    - User-provided copier, freer, and comparator (CCSpecialDefinedPack).
+
+    - Custom hash function supplied by user.
+
+- Edge Case Handling:
+
+    - Duplicate insertions are ignored.
+
+    - Safe calls with NULL set.
+
+- Handles large key ranges and high-volume data gracefully.
+
+- Cross-Platform C API: Lightweight and portable, suitable for embedded and desktop use.
+
+
+
 ---
 
 ## ⚡ Benchmarks
@@ -226,6 +293,11 @@ to see the performance in your machines
 
 * [√] CCString — A lightweight and efficient C string library with optional small string optimization (SSO).
 
+* [√] CCUnorderedMap — A hash table–based associative container in C.
+Supports efficient average O(1) key–value access, dynamic resizing, and customizable hash/equality functions.
+
+* [√] CCUnorderedSet — A hash table–based set container in C.
+Provides fast average O(1) element insertion, lookup, and deletion, ensuring uniqueness without ordering guarantees.
 ---
 
 ## 💡 Philosophy
