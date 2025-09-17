@@ -1,8 +1,9 @@
 #include "map.h"
+#include "Error.h"
 #include "compares.h"
+#include "map_node.h"
 #include "memory_allocation/memory_allocation.h"
 #include "memory_allocation/memory_allocation_tools.h"
-#include "map_node.h"
 /**
  * @brief create a map
  *
@@ -16,15 +17,14 @@ CCMap* CCBasicCoreCCMap_Create(
     size_t key_size,
     size_t value_size,
     CCSpecialDefinedPack* key_op,
-    CCSpecialDefinedPack* value_op)
-{
-    CCMap* map = allocate_one(CCMap);
-    map->key_op = key_op;
-    map->value_op = value_op;
-    map->value_size = value_size;
-    map->key_size = key_size;
-    map->root = NULL;
-    return map;
+    CCSpecialDefinedPack* value_op) {
+	CCMap* map = allocate_one(CCMap);
+	map->key_op = key_op;
+	map->value_op = value_op;
+	map->value_size = value_size;
+	map->key_size = key_size;
+	map->root = NULL;
+	return map;
 }
 
 /**
@@ -34,16 +34,16 @@ CCMap* CCBasicCoreCCMap_Create(
  * @param key
  * @param value
  */
-void CCBasicCoreCCMap_Insert(CCMap* map, cckey_t key, ccvalue_t value)
-{
-    CCMapNode* mapping_node = CCBasicCoreCCMapNode_Create(
-        key, map->key_size, 
-        map->key_op,
-        value, map->value_size, 
-        map->value_op
-    );
+void CCBasicCoreCCMap_Insert(CCMap* map, cckey_t key, ccvalue_t value) {
+	if (!map)
+		return;
+	CCMapNode* mapping_node = CCBasicCoreCCMapNode_Create(
+	    key, map->key_size,
+	    map->key_op,
+	    value, map->value_size,
+	    map->value_op);
 
-    map->root = CCBasicCoreCCMapNode_Insert(map->root, mapping_node);
+	map->root = CCBasicCoreCCMapNode_Insert(map->root, mapping_node);
 }
 
 /**
@@ -53,23 +53,25 @@ void CCBasicCoreCCMap_Insert(CCMap* map, cckey_t key, ccvalue_t value)
  * @param key
  * @return value_t
  */
-ccvalue_t CCBasicCoreCCMap_Find(CCMap* map, cckey_t key){
-    CCMapNode* mapNode = map->root;
-    while(mapNode){
-        CompareResult result = map->key_op->compared(mapNode->key, key);
-        switch(result){
-        case CCBASICCORE_COMPARERESULT_SMALLER:
-            mapNode = mapNode->leftNode;
-        break;
-        case CCBASICCORE_COMPARERESULT_LARGE:
-            mapNode = mapNode->rightNode;
-        break;
-        case CCBASICCORE_COMPARERESULT_EQUAL:
-            return mapNode->value;
-        break;
-        };
-    }
-    return NULL;
+ccvalue_t CCBasicCoreCCMap_Find(CCMap* map, cckey_t key) {
+	if (!map)
+		return NULL;
+	CCMapNode* mapNode = map->root;
+	while (mapNode) {
+		CompareResult result = map->key_op->compared(mapNode->key, key);
+		switch (result) {
+		case CCBASICCORE_COMPARERESULT_SMALLER:
+			mapNode = mapNode->leftNode;
+			break;
+		case CCBASICCORE_COMPARERESULT_LARGE:
+			mapNode = mapNode->rightNode;
+			break;
+		case CCBASICCORE_COMPARERESULT_EQUAL:
+			return mapNode->value;
+			break;
+		};
+	}
+	return NULL;
 }
 
 /**
@@ -79,11 +81,11 @@ ccvalue_t CCBasicCoreCCMap_Find(CCMap* map, cckey_t key){
  * @param key
  * @return int 1 if erased successfully, 0 if not found
  */
-int CCBasicCoreCCMap_Erase(CCMap* map, cckey_t key)
-{
-    if (!map || !map->root) return 0;
-    map->root = CCBasicCoreCCMapNode_Delete(map->root, key);
-    return 1;   
+int CCBasicCoreCCMap_Erase(CCMap* map, cckey_t key) {
+	if (!map || !map->root)
+		return CCBasicCore_MEMORY_NULL_ADDR;
+	map->root = CCBasicCoreCCMapNode_Delete(map->root, key);
+	return CCBasicCore_SUCCESS;
 }
 
 /**
@@ -92,8 +94,12 @@ int CCBasicCoreCCMap_Erase(CCMap* map, cckey_t key)
  * @param map
  * @return int
  */
-int CCBasicCoreCCMap_Destroy(CCMap* map)
-{
-    int result = CCBasicCoreCCMapNode_Erase(map->root);
-    return result && free_memory(map);
+int CCBasicCoreCCMap_Destroy(CCMap* map) {
+	if (!map)
+		return CCBasicCore_MEMORY_NULL_ADDR;
+	int result = CCBasicCoreCCMapNode_Erase(map->root);
+	if (result != CCBasicCore_SUCCESS)
+		return result;
+	free_memory(map);
+	return result;
 }

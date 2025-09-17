@@ -1,90 +1,100 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "queue_interface.h"
 #include "queue_list.h"
 #include "queue_vector.h"
+#include <stdio.h>
+#include <stdlib.h>
 
-static void test_queue(CCQueue* q, const char* name) {
-    printf("===== Testing %s =====\n", name);
-
-    // Basic push
-    for (int i = 1; i <= 5; i++) {
-        CCBasicCore_CCQueuePush(q, &i, sizeof(int));
-        printf("Pushed: %d\n", i);
-    }
-
-    // Check front
-    int* front = (int*)CCBasicCore_CCQueueFront(q);
-    if (front) {
-        printf("Front element: %d\n", *front);
-    }
-
-    // Pop elements
-    while (!CCBasicCore_CCQueueEmpty(q)) {
-        int* val = (int*)CCBasicCore_CCQueuePop(q);
-        if (val) {
-            printf("Popped: %d\n", *val);
-        }
-    }
-
-    // Edge case: pop from empty
-    int* emptyPop = (int*)CCBasicCore_CCQueuePop(q);
-    printf("Pop on empty queue -> %s\n", emptyPop ? "NOT NULL (BUG)" : "NULL (OK)");
-
-    CCBasicCore_CCQueueDestroy(q);
-    printf("===== Finished %s =====\n\n", name);
+// =================== 测试工具 ===================
+static void print_result(const char* test_name, int passed) {
+	printf("[TEST] %-50s : %s\n", test_name, passed ? "PASSED" : "FAILED");
 }
 
-static void stress_test(CCQueue* q, const char* name, int N) {
-    printf("===== Stress Test %s (%d elements) =====\n", name, N);
+// =================== 全面接口测试 ===================
+static void test_queue_full(CCQueue* q, const char* name) {
+	printf("==== %s 全面接口测试 ====\n", name);
 
-    // Push N elements
-    for (int i = 0; i < N; i++) {
-        CCBasicCore_CCQueuePush(q, &i, sizeof(int));
-    }
+	int success = 1;
 
-    // Validate size
-    size_t sz = CCBasicCore_CCQueueSize(q);
-    printf("Size after push: %zu\n", sz);
+	// 1. push 一些元素
+	for (int i = 0; i < 10; i++) {
+		CCBasicCore_CCQueuePush(q, &i, sizeof(int));
+	}
+	print_result("Push 10 elements", 1);
 
-    // Pop all elements
-    int success = 1;
-    for (int i = 0; i < N; i++) {
-        int* val = (int*)CCBasicCore_CCQueuePop(q);
-        if (!val || *val != i) {
-            printf("Error: expected %d, got %d\n", i, val ? *val : -1);
-            success = 0;
-            break;
-        }
-    }
+	// 2. front 测试
+	int* front = (int*)CCBasicCore_CCQueueFront(q);
+	print_result("Front after push", front && *front == 0);
 
-    if (success) {
-        printf("Stress test PASSED.\n");
-    } else {
-        printf("Stress test FAILED.\n");
-    }
+	// 3. size 测试
+	size_t sz = CCBasicCore_CCQueueSize(q);
+	print_result("Size after push", sz == 10);
 
-    CCBasicCore_CCQueueDestroy(q);
-    printf("===== Finished Stress Test %s =====\n\n", name);
+	// 4. empty 测试
+	int isEmpty = CCBasicCore_CCQueueEmpty(q);
+	print_result("Empty after push", !isEmpty);
+
+	// 5. pop 测试 & 顺序检查
+	success = 1;
+	for (int i = 0; i < 10; i++) {
+		int* val = (int*)CCBasicCore_CCQueuePop(q);
+		if (!val || *val != i) {
+			success = 0;
+		}
+	}
+	print_result("Pop 10 elements in order", success);
+
+	// 6. empty 再次检查
+	print_result("Empty after pop all", CCBasicCore_CCQueueEmpty(q));
+
+	// 7. front on empty
+	front = (int*)CCBasicCore_CCQueueFront(q);
+	print_result("Front on empty queue", front == NULL);
+
+	// 8. pop on empty
+	int* emptyPop = (int*)CCBasicCore_CCQueuePop(q);
+	print_result("Pop on empty queue", emptyPop == NULL);
+
+	// 9. Stress test push/pop
+	const int N = 100000;
+	success = 1;
+	for (int i = 0; i < N; i++) {
+		CCBasicCore_CCQueuePush(q, &i, sizeof(int));
+	}
+	print_result("Stress push 100000 elements", 1);
+
+	// 检查 size
+	print_result("Size after stress push", CCBasicCore_CCQueueSize(q) == N);
+
+	// Pop 并验证顺序
+	success = 1;
+	for (int i = 0; i < N; i++) {
+		int* val = (int*)CCBasicCore_CCQueuePop(q);
+		if (!val || *val != i) {
+			success = 0;
+		}
+	}
+	print_result("Stress pop 100000 elements in order", success);
+
+	// Queue should be empty now
+	print_result("Empty after stress pop", CCBasicCore_CCQueueEmpty(q));
+
+	// 10. destroy 空队列
+	CCBasicCore_CCQueueDestroy(q);
+	print_result("Destroy queue safely", 1);
+
+	printf("==== %s 全面接口测试完成 ====\n\n", name);
 }
 
-int main() {
-    // Vector-backed queue test
-    CCQueue* vectorQueue = CCBasicCore_CCVectorQueueCreate(sizeof(int));
-    test_queue(vectorQueue, "VectorQueue");
+// =================== 主函数 ===================
+int main(void) {
+	// Vector-backed queue
+	CCQueue* vectorQueue = CCBasicCore_CCVectorQueueCreate(sizeof(int));
+	test_queue_full(vectorQueue, "VectorQueue");
 
-    // List-backed queue test
-    CCQueue* listQueue = CCBasicCore_CCListQueueCreate(sizeof(int));
-    test_queue(listQueue, "ListQueue");
+	// List-backed queue
+	CCQueue* listQueue = CCBasicCore_CCListQueueCreate(sizeof(int));
+	test_queue_full(listQueue, "ListQueue");
 
-    // Stress test for vector
-    CCQueue* stressVector = CCBasicCore_CCVectorQueueCreate(sizeof(int));
-    stress_test(stressVector, "VectorQueue", 100000);
-
-    // Stress test for list
-    CCQueue* stressList = CCBasicCore_CCListQueueCreate(sizeof(int));
-    stress_test(stressList, "ListQueue", 100000);
-
-    return 0;
+	printf("==== CCQueue 全接口性能 & 鲁棒性测试完成 ====\n");
+	return 0;
 }

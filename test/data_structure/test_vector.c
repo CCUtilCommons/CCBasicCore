@@ -1,119 +1,166 @@
+#include "result_pack.h"
+#include "vector.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
-#include "vector.h"
-#include "result_pack.h"
-#include "Error.h"
-
-#define N 1000000  // 压测元素数量
-
-void basic_test() {
-    printf("==== Basic Function Test ====\n");
-
-    CCVector* v = CCBasicCoreVector_CreateVector(sizeof(int));
-
-    // push 10 elements
-    for (int i = 0; i < 10; i++) {
-        __CCBasicCoreVector_PushBack(v, &i, sizeof(int));
-    }
-
-    // check size
-    printf("Size after 10 push: %zu\n", v->current_size);
-
-    // get and print
-    for (int i = 0; i < 10; i++) {
-        struct ResultPack* res = CCBasicCoreVector_Get(v, i);
-        if(res->status_code == CCBasicCore_SUCCESS){
-            printf("%d ", *(int*)res->result);
-        } else {
-            printf("[ERR]");
-        }
-    }
-    printf("\n");
-
-    // set element 5 -> 999
-    int val = 999;
-    __CCBasicCoreVector_Set(v, 5, &val, sizeof(int));
-
-    struct ResultPack* res = CCBasicCoreVector_Get(v, 5);
-    printf("Element[5] after set = %d\n", *(int*)res->result);
-
-    // pop elements
-    for (int i = 0; i < 5; i++) {
-        CCBasicCoreVector_PopBack(v);
-    }
-    printf("Size after 5 pop: %zu\n", v->current_size);
-
-    CCBasicCoreVector_FreeVector(v);
-    printf("==== Basic Test Done ====\n\n");
+// ============ 工具函数 ============
+static void print_result(const char* test_name, int passed) {
+	printf("[TEST] %-40s : %s\n", test_name, passed ? "PASSED" : "FAILED");
 }
 
-void stress_test() {
-    printf("==== Stress Test ====\n");
+// ============ 功能测试 ============
+static void test_create_and_free() {
+	CCVector* v = CCBasicCoreVector_CreateVector(sizeof(int));
+	print_result("Create Vector", v != NULL);
 
-    CCVector* v = CCBasicCoreVector_CreateVector(sizeof(int));
-
-    clock_t start = clock();
-
-    // push N elements
-    for (int i = 0; i < N; i++) {
-        __CCBasicCoreVector_PushBack(v, &i, sizeof(int));
-    }
-
-    clock_t mid = clock();
-
-    // pop N elements
-    for (int i = 0; i < N; i++) {
-        CCBasicCoreVector_PopBack(v);
-    }
-
-    clock_t end = clock();
-
-    double push_time = (double)(mid - start) / CLOCKS_PER_SEC;
-    double pop_time  = (double)(end - mid) / CLOCKS_PER_SEC;
-
-    printf("Push %d elements: %.3f sec\n", N, push_time);
-    printf("Pop  %d elements: %.3f sec\n", N, pop_time);
-    printf("Final size: %zu\n", v->current_size);
-
-    CCBasicCoreVector_FreeVector(v);
-    printf("==== Stress Test Done ====\n\n");
+	int res = CCBasicCoreVector_FreeVector(v);
+	print_result("Free Vector", res == 0);
 }
 
-void perf_compare_array() {
-    printf("==== Performance Compare (Vector vs Raw Array) ====\n");
+static void test_push_and_get() {
+	CCVector* v = CCBasicCoreVector_CreateVector(sizeof(int));
+	int a = 10, b = 20;
 
-    clock_t start, end;
+	CCBasicCoreVector_PushBack(v, &a);
+	CCBasicCoreVector_PushBack(v, &b);
 
-    // vector push
-    CCVector* v = CCBasicCoreVector_CreateVector(sizeof(int));
-    start = clock();
-    for (int i = 0; i < N; i++) {
-        __CCBasicCoreVector_PushBack(v, &i, sizeof(int));
-    }
-    end = clock();
-    double vector_time = (double)(end - start) / CLOCKS_PER_SEC;
+	struct ResultPack* rp = CCBasicCoreVector_Get(v, 1);
+	int* val = (int*)(rp->result);
+	print_result("PushBack + Get", (*val == 20));
 
-    // raw array
-    int* arr = (int*)malloc(N * sizeof(int));
-    start = clock();
-    for (int i = 0; i < N; i++) {
-        arr[i] = i;
-    }
-    end = clock();
-    double raw_time = (double)(end - start) / CLOCKS_PER_SEC;
-
-    printf("Vector push %d elements: %.3f sec\n", N, vector_time);
-    printf("Raw array write %d elements: %.3f sec\n", N, raw_time);
-
-    CCBasicCoreVector_FreeVector(v);
-    free(arr);
-    printf("==== Performance Compare Done ====\n\n");
+	CCBasicCoreVector_FreeVector(v);
 }
 
-int main() {
-    basic_test();
-    stress_test();
-    perf_compare_array();
-    return 0;
+static void test_pop_and_resize() {
+	CCVector* v = CCBasicCoreVector_CreateVector(sizeof(int));
+	for (int i = 0; i < 5; i++)
+		CCBasicCoreVector_PushBack(v, &i);
+
+	CCBasicCoreVector_PopBack(v);
+	print_result("PopBack size check", v->current_size == 4);
+
+	int res = CCBasicCoreVector_ResizeVector(v, 10);
+	print_result("Resize Vector", res == 0 && v->capacity >= 10);
+
+	CCBasicCoreVector_FreeVector(v);
+}
+
+// ============ 扩展性能测试 ============
+static void test_performance_all() {
+	const int N = 100000;
+	CCVector* v = CCBasicCoreVector_CreateVector(sizeof(int));
+	clock_t start, end;
+	double elapsed;
+
+	// PushBack 性能
+	start = clock();
+	for (int i = 0; i < N; i++)
+		CCBasicCoreVector_PushBack(v, &i);
+	end = clock();
+	elapsed = (double)(end - start) / CLOCKS_PER_SEC;
+	printf("[PERF] PushBack %d elems took %.4f sec\n", N, elapsed);
+
+	// PushFront 性能
+	start = clock();
+	for (int i = 0; i < N; i++)
+		CCBasicCoreVector_PushFront(v, &i);
+	end = clock();
+	elapsed = (double)(end - start) / CLOCKS_PER_SEC;
+	printf("[PERF] PushFront %d elems took %.4f sec\n", N, elapsed);
+
+	// Get 性能
+	start = clock();
+	for (int i = 0; i < N; i++) {
+		struct ResultPack* rp = CCBasicCoreVector_Get(v, i % v->current_size);
+		(void)rp;
+	}
+	end = clock();
+	elapsed = (double)(end - start) / CLOCKS_PER_SEC;
+	printf("[PERF] Get %d elems took %.4f sec\n", N, elapsed);
+
+	// Set 性能
+	start = clock();
+	for (int i = 0; i < N; i++) {
+		int val = i;
+		CCBasicCoreVector_Set(v, i % v->current_size, &val);
+	}
+	end = clock();
+	elapsed = (double)(end - start) / CLOCKS_PER_SEC;
+	printf("[PERF] Set %d elems took %.4f sec\n", N, elapsed);
+
+	// PopBack 性能
+	start = clock();
+	for (int i = 0; i < N && v->current_size > 0; i++)
+		CCBasicCoreVector_PopBack(v);
+	end = clock();
+	elapsed = (double)(end - start) / CLOCKS_PER_SEC;
+	printf("[PERF] PopBack %d elems took %.4f sec\n", N, elapsed);
+
+	// PopFront 性能
+	for (int i = 0; i < N; i++)
+		CCBasicCoreVector_PushBack(v, &i);
+	start = clock();
+	for (int i = 0; i < N && v->current_size > 0; i++)
+		CCBasicCoreVector_PopFront(v);
+	end = clock();
+	elapsed = (double)(end - start) / CLOCKS_PER_SEC;
+	printf("[PERF] PopFront %d elems took %.4f sec\n", N, elapsed);
+
+	// Resize 性能
+	start = clock();
+	for (int i = 0; i < 1000; i++) {
+		CCBasicCoreVector_ResizeVector(v, i * 10 + 1);
+	}
+	end = clock();
+	elapsed = (double)(end - start) / CLOCKS_PER_SEC;
+	printf("[PERF] Resize 1000 times took %.4f sec\n", elapsed);
+
+	CCBasicCoreVector_FreeVector(v);
+}
+
+// ============ 扩展边界/鲁棒性测试 ============
+static void test_edge_all() {
+	CCVector* v = CCBasicCoreVector_CreateVector(sizeof(int));
+	int dummy = 0;
+
+	// Pop 空 vector
+	print_result("PopBack empty vector", CCBasicCoreVector_PopBack(v) != 0);
+	print_result("PopFront empty vector", CCBasicCoreVector_PopFront(v) != 0);
+
+	// Get/Set 越界
+	print_result("Get out of range", CCBasicCoreVector_Get(v, 100)->result == NULL);
+	print_result("Set out of range", CCBasicCoreVector_Set(v, 100, &dummy) != 0);
+
+	// Push NULL element (应该安全处理)
+	print_result("PushBack NULL element", __CCBasicCoreVector_PushBack(v, NULL, sizeof(int)) != 0);
+	print_result("PushFront NULL element", __CCBasicCoreVector_PushFront(v, NULL, sizeof(int)) != 0);
+
+	// Resize 0
+	print_result("Resize to 0", CCBasicCoreVector_ResizeVector(v, 0) == 0 && v->current_size == 0);
+
+	// 空指针安全
+	print_result("NULL FreeVector safe", CCBasicCoreVector_FreeVector(NULL) != 0);
+	print_result("NULL PushBack safe", CCBasicCoreVector_PushBack(NULL, &dummy) != 0);
+	print_result("NULL PushFront safe", CCBasicCoreVector_PushFront(NULL, &dummy) != 0);
+	print_result("NULL PopBack safe", CCBasicCoreVector_PopBack(NULL) != 0);
+	print_result("NULL PopFront safe", CCBasicCoreVector_PopFront(NULL) != 0);
+	print_result("NULL Get safe", CCBasicCoreVector_Get(NULL, 0) == NULL);
+	print_result("NULL Set safe", CCBasicCoreVector_Set(NULL, 0, &dummy) != 0);
+
+	CCBasicCoreVector_FreeVector(v);
+}
+
+// ============ 主函数 ============
+int main(void) {
+	printf("======== CCVector Test Begin ========\n");
+
+	test_create_and_free();
+	test_push_and_get();
+	test_pop_and_resize();
+	test_performance_all();
+	test_edge_all();
+
+	printf("======== CCVector Test End ==========\n");
+	return 0;
 }

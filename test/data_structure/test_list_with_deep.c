@@ -1,185 +1,163 @@
+#include "list.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "list.h"
 
-// 打印整数
-static void print_int(void* elem) {
-    printf("%d ", *(int*)elem);
-}
-
-// pack 测试
+// =================== pack 函数 ===================
 static void* int_copier(const void* src) {
-    int* dst = malloc(sizeof(int));
-    *dst = *(int*)src;
-    return dst;
+	int* dst = malloc(sizeof(int));
+	*dst = *(int*)src;
+	return dst;
 }
 static int int_freer(void* data) {
-    free(data);
-    return 1;
+	free(data);
+	return 1;
 }
 static int int_compare(const void* a, const void* b) {
-    return (*(int*)a - *(int*)b);
+	return (*(int*)a - *(int*)b);
 }
 
-// 基础 push/pop 测试
-void test_basic() {
-    printf("===== 基础测试: Push/Pop =====\n");
-    CCList* list = CCBasicCore_initCCList(sizeof(int));
+// =================== 边缘接口测试 ===================
+static void test_list_edge_cases() {
+	printf("==== 边缘测试: 空链表/单元素/重复操作 ====\n");
+	CCList* list = CCBasicCore_initCCList(sizeof(int));
 
-    int a = 1, b = 2, c = 3;
-    CCBasicCore_CCListPushBack(list, &a, sizeof(a));
-    CCBasicCore_CCListPushBack(list, &b, sizeof(b));
-    CCBasicCore_CCListPushFront(list, &c, sizeof(c));
+	// 空链表操作
+	int* val = CCBasicCore_CCListPopFront(list);
+	printf("PopFront on empty -> %s\n", val ? "NOT NULL (BUG)" : "NULL (OK)");
+	val = CCBasicCore_CCListPopBack(list);
+	printf("PopBack on empty -> %s\n", val ? "NOT NULL (BUG)" : "NULL (OK)");
 
-    printf("当前 size: %zu\n", CCBasicCore_CCListSize(list));
-    CCBasicCore_CCListRunIterate(list, print_int);
-    printf("\n");
+	// 单元素操作
+	int x = 42;
+	CCBasicCore_CCListPushBack(list, &x, sizeof(x));
+	printf("PushBack single element, size=%zu\n", CCBasicCore_CCListSize(list));
+	val = CCBasicCore_CCListPopFront(list);
+	printf("PopFront single element -> %d\n", *val);
 
-    int* x = (int*)CCBasicCore_CCListPopFront(list);
-    printf("PopFront: %d\n", *x);
-    x = (int*)CCBasicCore_CCListPopBack(list);
-    printf("PopBack: %d\n", *x);
+	// 重复插入/删除
+	int y = 99;
+	for (int i = 0; i < 5; i++)
+		CCBasicCore_CCListPushBack(list, &y, sizeof(y));
+	for (int i = 0; i < 5; i++)
+		val = CCBasicCore_CCListPopBack(list);
+	printf("Repeated insert/pop test size=%zu\n", CCBasicCore_CCListSize(list));
 
-    printf("剩余 size: %zu\n", CCBasicCore_CCListSize(list));
-    CCBasicCore_destroyCCList(list);
+	CCBasicCore_destroyCCList(list);
 }
 
-// Insert / Erase 测试
-void test_insert_erase() {
-    printf("\n===== 插入/删除测试 =====\n");
-    CCList* list = CCBasicCore_initCCList(sizeof(int));
-    int vals[] = {10, 20, 30, 40};
-    for(int i=0;i<4;i++) CCBasicCore_CCListPushBack(list, &vals[i], sizeof(int));
+// =================== 压力接口测试 ===================
+static void stress_test_list_interfaces(int count) {
+	printf("\n==== 压力测试: Push/Pop/Insert/Erase (%d elements) ====\n", count);
 
-    printf("初始链表: ");
-    CCBasicCore_CCListRunIterate(list, print_int);
-    printf("\n");
+	CCSpecialDefinedPack pack = { int_copier, int_freer, int_compare };
+	CCList* list = CCBasicCore_initSpecialCCList(sizeof(int), &pack);
 
-    struct CCListNode* head = CCBasicCore_CCListHead(list);
-    struct CCListNode* inserted = CCBasicCore_CCListInsert(list, head, &vals[3], sizeof(int));
+	clock_t start = clock();
 
-    printf("插入后: ");
-    CCBasicCore_CCListRunIterate(list, print_int);
-    printf("\n");
+	// PushBack
+	for (int i = 0; i < count; i++) {
+		int* val = malloc(sizeof(int));
+		*val = i;
+		CCBasicCore_CCListPushBack(list, val, sizeof(int));
+	}
 
-    CCBasicCore_CCListErase(list, inserted);
-    printf("删除后: ");
-    CCBasicCore_CCListRunIterate(list, print_int);
-    printf("\n");
+	// PushFront
+	for (int i = 0; i < count; i++) {
+		int* val = malloc(sizeof(int));
+		*val = i + 1000000;
+		CCBasicCore_CCListPushFront(list, val, sizeof(int));
+	}
 
-    CCBasicCore_destroyCCList(list);
+	// Insert at head repeatedly
+	struct CCListNode* head = CCBasicCore_CCListHead(list);
+	for (int i = 0; i < 1000; i++) {
+		int* val = malloc(sizeof(int));
+		*val = i + 2000000;
+		CCBasicCore_CCListInsert(list, head, val, sizeof(int));
+	}
+
+	// PopFront
+	for (int i = 0; i < count / 2; i++) {
+		int* val = CCBasicCore_CCListPopFront(list);
+		free(val);
+	}
+
+	// PopBack
+	for (int i = 0; i < count / 2; i++) {
+		int* val = CCBasicCore_CCListPopBack(list);
+		free(val);
+	}
+
+	// Erase some nodes in middle
+	head = CCBasicCore_CCListHead(list);
+	struct CCListNode* node = head;
+	for (int i = 0; i < 10 && node; i++, node = CCBasicCore_ListNodeNext(node)) {
+		CCBasicCore_CCListErase(list, node);
+	}
+
+	clock_t end = clock();
+	printf("压力测试结束, size=%zu, 耗时: %.3f 秒\n",
+	       CCBasicCore_CCListSize(list),
+	       (double)(end - start) / CLOCKS_PER_SEC);
+
+	// 清理剩余
+	while (!CCBasicCore_CCListEmpty(list)) {
+		int* val = CCBasicCore_CCListPopFront(list);
+		free(val);
+	}
+
+	CCBasicCore_destroyCCList(list);
 }
 
-// pack 测试
-void test_pack() {
-    printf("\n===== 带 pack 的深拷贝测试 =====\n");
-    CCSpecialDefinedPack pack = {
-        .copier = int_copier,
-        .freer = int_freer,
-        .compared = int_compare
-    };
-    CCList* list = CCBasicCore_initSpecialCCList(sizeof(int), &pack);
+// =================== 随机操作压力测试 ===================
+static void random_ops_list_test(int count) {
+	printf("\n==== 随机操作压力测试 (%d ops) ====\n", count);
 
-    int* heap_num = malloc(sizeof(int));
-    *heap_num = 100;
-    CCBasicCore_CCListPushBack(list, heap_num, sizeof(int));
+	CCList* list = CCBasicCore_initCCList(sizeof(int));
+	srand((unsigned)time(NULL));
 
-    printf("深拷贝测试: ");
-    CCBasicCore_CCListRunIterate(list, print_int);
-    printf("\n");
+	int* pool = malloc(sizeof(int) * count);
+	for (int i = 0; i < count; i++)
+		pool[i] = i;
 
-    CCBasicCore_destroyCCList(list); // 会调用 int_freer 释放元素
+	for (int i = 0; i < count; i++) {
+		int op = rand() % 4;
+		int* val = &pool[i];
+		switch (op) {
+		case 0:
+			CCBasicCore_CCListPushBack(list, val, sizeof(int));
+			break;
+		case 1:
+			CCBasicCore_CCListPushFront(list, val, sizeof(int));
+			break;
+		case 2:
+			if (!CCBasicCore_CCListEmpty(list))
+				CCBasicCore_CCListPopBack(list);
+			break;
+		case 3:
+			if (!CCBasicCore_CCListEmpty(list))
+				CCBasicCore_CCListPopFront(list);
+			break;
+		}
+	}
+
+	printf("随机操作测试完成, 链表大小=%zu\n", CCBasicCore_CCListSize(list));
+
+	// 清理
+	while (!CCBasicCore_CCListEmpty(list))
+		CCBasicCore_CCListPopFront(list);
+
+	CCBasicCore_destroyCCList(list);
+	free(pool);
 }
 
-// 边界测试
-void test_edge() {
-    printf("\n===== 边界情况测试 =====\n");
-    CCList* list = CCBasicCore_initCCList(sizeof(int));
-
-    printf("空表 size=%zu\n", CCBasicCore_CCListSize(list));
-    printf("PopFront(NULL)=%p\n", CCBasicCore_CCListPopFront(list));
-    printf("PopBack(NULL)=%p\n", CCBasicCore_CCListPopBack(list));
-
-    int val = 999;
-    CCBasicCore_CCListPushBack(list, &val, sizeof(int));
-    printf("单节点表 size=%zu\n", CCBasicCore_CCListSize(list));
-
-    int* x = CCBasicCore_CCListPopFront(list);
-    printf("PopFront 单节点: %d\n", *x);
-
-    CCBasicCore_destroyCCList(list);
-}
-
-// 压力测试
-void stress_test(int count) {
-    printf("\n===== 压力测试 =====\n");
-    CCList* list = CCBasicCore_initCCList(sizeof(int));
-
-    clock_t start = clock();
-
-    // PushBack
-    for(int i=0;i<count;i++) {
-        int* val = malloc(sizeof(int));
-        *val = i;
-        CCBasicCore_CCListPushBack(list, val, sizeof(int));
-    }
-
-    // PopFront
-    long long sum = 0;
-    for(int i=0;i<count;i++) {
-        int* val = CCBasicCore_CCListPopFront(list);
-        sum += *val;
-        free(val);
-    }
-
-    clock_t end = clock();
-    printf("压测完成，sum=%lld, 链表大小=%zu\n", sum, CCBasicCore_CCListSize(list));
-    printf("耗时: %.3f 秒\n", (double)(end - start) / CLOCKS_PER_SEC);
-
-    CCBasicCore_destroyCCList(list);
-}
-
-// 随机操作测试
-void random_ops_test(int count) {
-    printf("\n===== 随机操作测试 =====\n");
-    CCList* list = CCBasicCore_initCCList(sizeof(int));
-    srand((unsigned)time(NULL));
-
-    int* pool = malloc(sizeof(int)*count);
-
-    for(int i=0;i<count;i++) pool[i] = i;
-
-    for(int i=0;i<count;i++) {
-        int op = rand() % 4;
-        int* val = &pool[i];
-        switch(op){
-            case 0: CCBasicCore_CCListPushBack(list, val, sizeof(int)); break;
-            case 1: CCBasicCore_CCListPushFront(list, val, sizeof(int)); break;
-            case 2: if(!CCBasicCore_CCListEmpty(list)) CCBasicCore_CCListPopBack(list); break;
-            case 3: if(!CCBasicCore_CCListEmpty(list)) CCBasicCore_CCListPopFront(list); break;
-        }
-    }
-
-    printf("随机操作完成, 链表大小=%zu\n", CCBasicCore_CCListSize(list));
-
-    while(!CCBasicCore_CCListEmpty(list)) {
-        CCBasicCore_CCListPopFront(list);
-    }
-
-    CCBasicCore_destroyCCList(list);
-    free(pool);
-}
-
+// =================== 主函数 ===================
 int main() {
-    test_basic();
-    test_insert_erase();
-    test_pack();
-    test_edge();
+	test_list_edge_cases();
+	stress_test_list_interfaces(1000000); // 压力测试 100 万
+	random_ops_list_test(1000000); // 随机操作 100 万
 
-    stress_test(1000000); // 压测 1M 次
-    random_ops_test(1000000); // 随机操作 1M 次
-
-    printf("\n所有测试完成 ✅\n");
-    return 0;
+	printf("\n==== 所有 CCList 接口压力 & 边缘测试完成 ✅ ====\n");
+	return 0;
 }

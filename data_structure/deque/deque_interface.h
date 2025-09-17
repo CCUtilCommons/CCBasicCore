@@ -70,6 +70,10 @@ static inline void* CCBasicCore_CCDequeFront(CCDeque* deque) {
 	return deque->interface->front_ptr(deque);
 }
 
+static inline void* CCBasicCore_CCDequeBack(CCDeque* deque) {
+	return deque->interface->back_ptr(deque);
+}
+
 static inline size_t CCBasicCore_CCDequeSize(CCDeque* deque) {
 	return deque->interface->size_ptr(deque);
 }
