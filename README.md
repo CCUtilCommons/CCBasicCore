@@ -163,6 +163,42 @@ Flexible memory management via CCSpecialDefinedPack:
 - Robust resizing: Table automatically expands to maintain load factor for performance.
 
 - Cross-platform C API: Lightweight and portable, suitable for embedded and desktop projects.
+
+### ✅ CCString
+A lightweight and efficient C string library with optional small string optimization (SSO).
+
+✨ Features
+
+- Small String Optimization (SSO): For strings shorter than 15 characters, store directly in the stack to avoid heap allocation overhead.
+
+- Dynamic Memory Management: For longer strings, automatically allocate memory on the heap, supporting pre-allocation and shrinking.
+
+- Comprehensive API:
+
+    - Create and free strings.
+
+    - Append, insert, erase, and get substrings.
+
+    - Compare strings and find substrings.
+
+    - Iterate over characters with visit and process functions.
+
+    - Clear and check string size and emptiness.
+
+- Custom Iterators:
+
+    - VisitStringIterator: Read-only character access.
+
+    - AssignedStringIterator: Read-write character access.
+
+- Edge Case Handling:
+
+    - Supports empty strings, null characters, and large strings.
+
+    - Handles strings with embedded null characters gracefully.
+
+- Cross-Platform C API: Lightweight and portable, suitable for embedded and desktop projects.
+
 ---
 
 ## ⚡ Benchmarks
@@ -174,11 +210,21 @@ to see the performance in your machines
 ---
 
 ## 🔮 Roadmap
-* [√] CCVector (C Dynamic Array)
-* [√] CCList (linked list)
-* [ ] CCHashMap (hash table)
-* [ ] CCString (string utility)
-* [ ] More algorithms
+* [√] CCVector — A simple yet efficient dynamic array (vector) implemented in C. Supports common operations such as push, pop, get, set, resize, and clear.
+
+* [√] CCList — A robust circular doubly-linked list implemented in C. Supports common operations such as push front/back, pop front/back, insert, erase, iterate, and size/empty checks.
+
+* [√] CCStack — An object-oriented-style abstract stack interface implemented in C. Lets you switch implementations at runtime between CCVectorStack and CCListStack while exposing a single, stable API (push/pop/top/empty/size/destroy).
+
+* [√] CCQueue — A flexible and efficient queue abstraction implemented in C. Supports multiple backends (CCVectorQueue, CCListQueue) with a unified interface.
+
+* [√] CCDeque — A flexible double-ended queue (deque) implementation in C. Supports efficient insertion and removal at both ends, with multiple backends (vector-based and list-based).
+
+* [√] CCMap — A balanced binary search tree (BST / Treap) based associative container in C. Supports efficient key–value storage with ordered iteration.
+
+* [√] CCUnorderedMap — A hash table–based associative container in C. Supports efficient average O(1) key–value access without ordering guarantees.
+
+* [√] CCString — A lightweight and efficient C string library with optional small string optimization (SSO).
 
 ---
 
