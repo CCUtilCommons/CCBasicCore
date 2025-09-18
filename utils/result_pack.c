@@ -1,6 +1,6 @@
 #include "result_pack.h"
-#include "memory_allocation/memory_allocation.h"
-#include "memory_allocation/memory_allocation_tools.h"
+#include "memory_allocation.h"
+#include "memory_allocation_tools.h"
 /**
  * @brief assigned pack for the usage
  *
@@ -9,12 +9,11 @@
  * @return ResultPack* pack for the result
  */
 ResultPack* CCBasicCoreResultPack_AssignedResultPack(
-    Result_t result, StatusCode_t code)
-{
-    ResultPack* pack = allocate_one(ResultPack);
-    pack->result = result;
-    pack->status_code = code;
-    return pack;
+    Result_t result, StatusCode_t code) {
+	ResultPack* pack = allocate_one(ResultPack);
+	pack->result = result;
+	pack->status_code = code;
+	return pack;
 }
 
 /**
@@ -23,8 +22,8 @@ ResultPack* CCBasicCoreResultPack_AssignedResultPack(
  * @param pack
  * @return Result_t
  */
-Result_t CCBasicCoreResultPack_DepackResult(ResultPack* pack){
-    return pack->result;
+Result_t CCBasicCoreResultPack_DepackResult(ResultPack* pack) {
+	return pack->result;
 }
 
 /**
@@ -34,8 +33,8 @@ Result_t CCBasicCoreResultPack_DepackResult(ResultPack* pack){
  * @param pack
  * @return StatusCode_t
  */
-StatusCode_t CCBasicCoreResultPack_GetCode(ResultPack* pack){
-    return pack->status_code;
+StatusCode_t CCBasicCoreResultPack_GetCode(ResultPack* pack) {
+	return pack->status_code;
 }
 
 /**
@@ -44,6 +43,6 @@ StatusCode_t CCBasicCoreResultPack_GetCode(ResultPack* pack){
  * @param pack
  * @return int
  */
-int CCBasicCoreResultPack_freePack(ResultPack* pack){
-    return free_memory(pack);
+int CCBasicCoreResultPack_freePack(ResultPack* pack) {
+	return free_memory(pack);
 }

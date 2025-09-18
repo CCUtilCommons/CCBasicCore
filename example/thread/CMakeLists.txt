@@ -1,0 +1,4 @@
+
+add_executable(thread_runner_example thread_runner_example.c)
+target_link_libraries(thread_runner_example PRIVATE ThreadLibrary)
+

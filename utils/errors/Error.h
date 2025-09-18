@@ -10,7 +10,11 @@ enum ErrorCode {
 	CCBasicCore_MEMORY_NULL_ADDR,
 	CCBasicCore_TYPE_MISMATCH,
 	CCBasicCore_CONTAINER_NULL,
-	CCBasicCore_UNFIND
+	CCBasicCore_UNFIND,
+
+	// Thread Library
+	CCBasicCore_ThreadUnJoinable
+
 };
 
 /**

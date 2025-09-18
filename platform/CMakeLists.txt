@@ -1,9 +1,10 @@
 message(STATUS "Configuring the Memory Allocations Sessions")
 
 add_subdirectory(memory_allocation)
-set(${MemoryAllocateSrc} ${MemoryAllocateSrc})
-message("MemoryAllocateSrc src: ${MemoryAllocateSrc}")
 
-add_library(PlatformCore STATIC ${MemoryAllocateSrc})
-target_include_directories(PlatformCore PUBLIC memory_allocation)
+message(STATUS "Configuring the Thread Impl Sessions")
+add_subdirectory(thread_impl)
+
+
+
 

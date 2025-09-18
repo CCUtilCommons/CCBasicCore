@@ -1,0 +1,17 @@
+# set_os_definition will get the os type for the
+# system we are currently defining
+function(set_os_definition)
+  if(WIN32)
+    set(OS_TYPE "OS_WINDOWS" PARENT_SCOPE)
+    message(STATUS "Library will be compiled for platform Windows")
+  elseif(APPLE)
+    set(OS_TYPE "OS_MACOS" PARENT_SCOPE)
+    message(STATUS "Library will be compiled for platform MacOS")
+  elseif(UNIX AND NOT APPLE)
+    set(OS_TYPE "OS_LINUX" PARENT_SCOPE)
+    message(STATUS "Library will be compiled for platform Linux")
+  else()
+    set(OS_TYPE "OS_OTHER" PARENT_SCOPE)
+    message(STATUS "Library will be compiled for platform Unknown/Embedded")
+  endif()
+endfunction()
