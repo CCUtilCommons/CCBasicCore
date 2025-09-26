@@ -2,3 +2,8 @@
 add_executable(thread_runner_example thread_runner_example.c)
 target_link_libraries(thread_runner_example PRIVATE ThreadLibrary)
 
+add_executable(mutex_example mutex_example.c)
+target_link_libraries(mutex_example PRIVATE ThreadLibrary)
+
+add_executable(cond_var_example cond_var_example.c)
+target_link_libraries(cond_var_example PRIVATE ThreadLibrary)

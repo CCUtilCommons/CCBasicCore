@@ -1,7 +1,7 @@
-
 set(THREADLIB_SOURCES 
     posix_thread_bkend.c
-    ../common/thread_impl_interface.h)
+    posix_mutex_bkend.c
+    posix_condvar_impl.c)
 
 message(STATUS "Dump Thread IMPL Backend: ${THREADLIB_SOURCES}")
 

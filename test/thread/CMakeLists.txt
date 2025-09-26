@@ -1,5 +1,7 @@
 set(TEST_SOURCES
     test_thread.c
+    test_mutex.c
+    test_condvar.c
 )
 
 foreach(TEST_SRC IN LISTS TEST_SOURCES)

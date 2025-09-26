@@ -35,7 +35,7 @@ CCThreadImpl* CCBasicCoreThreadIMPL_Create(
 	impl->args = ccmemory_copy(args, arg_size, args_process_package);
 	impl->task = task;
 	impl->args_pack = args_process_package;
-
+	impl->joinable = 1;
 	pthread_attr_t thread_attr;
 	pthread_attr_init(&thread_attr);
 
@@ -112,7 +112,10 @@ void* CCBasicCoreThreadIMPL_NativeHandle(CCThreadImpl* impl) {
 }
 
 void CCBasicCoreThreadIMPL_SleepMS(uint32_t ms) {
-	usleep(ms);
+	struct timespec ts;
+	ts.tv_sec = ms / 1000;
+	ts.tv_nsec = (ms % 1000) * 1000000L;
+	nanosleep(&ts, NULL);
 }
 
 void CCBasicCoreThreadIMPL_Yield(void) {
